@@ -37,7 +37,8 @@ fn receipt(k: &EcKey, relevance: f64, salt: &str) -> Value {
 
 #[tokio::test]
 async fn lethe_end_to_end() -> anyhow::Result<()> {
-    let wasm = std::fs::read("target/near/lethe.wasm").expect("build first: cargo near build non-reproducible-wasm");
+    let dir = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".into());
+    let wasm = std::fs::read(format!("{dir}/near/lethe.wasm")).expect("build first: cargo near build non-reproducible-wasm");
     let worker = near_workspaces::sandbox().await?;
     let root = worker.root_account()?;
     let mk = |name: &'static str, n: u128| { let root = root.clone(); async move {
