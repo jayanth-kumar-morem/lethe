@@ -58,7 +58,7 @@ Expected output:
 ```sh
 make verify            # LETHE_CONTRACT=lethe-380029.testnet by default
 ```
-Expected:
+Expected: one `OK` line per settlement, alternating like this:
 ```
 #0 Deal    novelty 100.0% relevance 59.5% [simulated AI signer] OK
 #1 NoDeal  novelty 31.3% relevance 59.5% [simulated AI signer] OK
