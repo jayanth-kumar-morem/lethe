@@ -1,0 +1,7 @@
+target/
+node_modules/
+scripts/.testnet.env
+*.key.json
+.env
+submission-payload.json
+.suffix*

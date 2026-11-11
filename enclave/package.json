@@ -1,0 +1,16 @@
+{
+  "name": "lethe-enclave",
+  "version": "0.1.0",
+  "description": "LETHE enclave service (local mode) and buyer/seller CLI",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
+    "ethers": "^6.17.0",
+    "libsodium-wrappers": "^0.7.16",
+    "near-api-js": "^7.5.1"
+  }
+}
