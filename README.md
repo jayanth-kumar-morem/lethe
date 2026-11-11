@@ -24,6 +24,10 @@ LETHE works around it with an enclave and a NEAR contract:
 
 Two funds inspect the same memo with the same budget. Fund A knows nothing about the topic, so the memo is new to it and it buys. Fund B already runs a solver and knows most of the memo, so it gets no deal, a refund, and a forget certificate.
 
+![LETHE demo: Fund A buys, Fund B gets a refund and a forget certificate (testnet)](docs/lethe-demo.gif)
+
+60-second video: [docs/lethe-demo.mp4](docs/lethe-demo.mp4) (recorded live against `lethe-380029.testnet`).
+
 > Built for NEAR HACKATHON (Nov 2026). **Other project by the same author:** [ChainProof Guard](https://github.com/jayanth-kumar-morem/chainproof-guard), an on-chain spending firewall for AI agents. The two projects are independent: separate repositories, contracts, accounts and code (rule Q-015).
 
 ---

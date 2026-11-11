@@ -7,11 +7,11 @@ header{display:flex;align-items:center;gap:16px;padding:14px 20px;border-bottom:
 h1{font-size:20px;margin:0;letter-spacing:.5px}h1 b{color:var(--acc)}.sub{color:var(--dim)}
 .btns{margin-left:auto;display:flex;gap:8px}button{background:#1b2230;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;font:inherit}button:hover{border-color:var(--acc)}
 .caption{margin:12px 20px 0;padding:12px 16px;border-radius:10px;background:linear-gradient(90deg,#1a2340,#121826);border:1px solid #2a3557;font-size:18px;min-height:52px}
-.grid{display:grid;grid-template-columns:1fr 1fr 1fr 1.25fr;gap:12px;padding:12px 20px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.25fr);gap:12px;padding:12px 20px}
 .pane{background:var(--panel);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-height:430px;max-height:430px}
 .pane h2{margin:0;padding:10px 12px;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
 .pane h2 .tag{margin-left:auto;font-size:11px;padding:2px 6px;border-radius:6px;background:#2a2333;color:var(--warn);text-transform:none;letter-spacing:0}
-.log{padding:10px 12px;overflow:auto;font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;flex:1}
+.log{padding:10px 12px;overflow:auto;font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere;flex:1}
 .log .ok{color:var(--ok)}.log .no{color:var(--no)}.log .hl{color:var(--acc)}.log .dim{color:var(--dim)}
 .chain{margin:0 20px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 table{width:100%;border-collapse:collapse;font-size:12.5px}td,th{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left}th{color:var(--dim);font-weight:500}
@@ -33,10 +33,11 @@ a{color:var(--acc)}footer{color:var(--dim);padding:0 20px 16px;font-size:12px}
 const $=id=>document.getElementById(id);
 const fmt=y=>(Number(BigInt(y||0)/10n**20n)/1e4).toFixed(4);
 const cls=l=>/DEAL|Deal|matches listing: true|✓|NEW /.test(l)&&!/NO DEAL|NoDeal/.test(l)?'ok':/NO DEAL|NoDeal|KNOWN|zeroized|✗/.test(l)?'no':/novelty|relevance|quote|receipt|yield/.test(l)?'hl':'';
-function add(ch,line){const el=$(ch);if(!el)return;const d=document.createElement('div');d.className=cls(line);d.textContent=line.replace(/^\d\d:\d\d:\d\d \[enclave\]\s*/,'');el.appendChild(d);el.scrollTop=el.scrollHeight;}
+const memo={};
+function add(ch,line){const el=$(ch);if(!el)return;if(/---- memo/.test(line)){memo[ch]=0;return;}if(/^\s*\|/.test(line)){memo[ch]=(memo[ch]||0)+1;if(memo[ch]>2){if(memo[ch]===3)line='  | … (rest of the memo, now readable only by this buyer)';else return;}}const d=document.createElement('div');d.className=cls(line);d.textContent=line.replace(/^\d\d:\d\d:\d\d \[enclave\]\s*/,'');el.appendChild(d);el.scrollTop=el.scrollHeight;}
 new EventSource('/api/events').onmessage=e=>{const m=JSON.parse(e.data);add(m.ch,m.line);if(m.ch==='enclave'&&/SIMULATED AI signer/.test(m.line))$('mode').textContent='local mode · attestation + AI signer simulated';if(m.ch==='enclave'&&/real receipts/.test(m.line))$('mode').textContent='local mode · NEAR AI Cloud receipts real';};
 async function refresh(){try{const s=await (await fetch('/api/state')).json();$('cid').textContent=s.contract;$('link').innerHTML=`<a href="https://testnet.nearblocks.io/address/${s.contract}" target="_blank">nearblocks: ${s.contract}</a>`;
-$('reqs').innerHTML=s.requests.filter(Boolean).reverse().map(r=>{const o=r.outcome||{};return `<tr><td>#${r.id}</td><td>${r.buyer}</td><td><span class="pill ${r.status}">${r.status}</span></td><td>${o.novelty_bps!=null?(o.novelty_bps/100).toFixed(1)+'%':'…'}</td><td>${o.relevance_bps!=null?(o.relevance_bps/100).toFixed(1)+'%':'…'}</td><td>${o.valuation?fmt(o.valuation):'…'}</td><td>${o.paid?fmt(o.paid):'…'}</td><td>${o.refunded?fmt(o.refunded):'…'}</td><td>${o.ai_signer?o.ai_signer.slice(0,10)+'…'+(o.ai_simulated?' (sim)':''):'…'}</td><td>${o.forget_cert_hash?o.forget_cert_hash.slice(0,12)+'…':''}</td></tr>`}).join('');}catch(e){}}
+$('reqs').innerHTML=s.requests.filter(Boolean).reverse().slice(0,4).map(r=>{const o=r.outcome||{};return `<tr><td>#${r.id}</td><td>${r.buyer}</td><td><span class="pill ${r.status}">${r.status}</span></td><td>${o.novelty_bps!=null?(o.novelty_bps/100).toFixed(1)+'%':'…'}</td><td>${o.relevance_bps!=null?(o.relevance_bps/100).toFixed(1)+'%':'…'}</td><td>${o.valuation?fmt(o.valuation):'…'}</td><td>${o.paid?fmt(o.paid):'…'}</td><td>${o.refunded?fmt(o.refunded):'…'}</td><td>${o.ai_signer?o.ai_signer.slice(0,10)+'…'+(o.ai_simulated?' (sim)':''):'…'}</td><td>${o.forget_cert_hash?o.forget_cert_hash.slice(0,12)+'…':''}</td></tr>`}).join('');}catch(e){}}
 setInterval(refresh,2000);refresh();
 const step=s=>fetch('/api/run/'+s,{method:'POST'}).then(r=>r.json());
 const cap=t=>$('cap').textContent=t;const wait=ms=>new Promise(r=>setTimeout(r,ms));
@@ -46,6 +47,7 @@ async function autoplay(){
  cap('Every claim is new to Fund A → deal. The contract verified the signed AI receipt, recomputed the price, paid the seller and released the memo to Fund A only.');await wait(6000);
  cap('3 · Fund B already runs a solver. Same memo, same budget.');await wait(1500);await step('buyerB');
  cap('Fund B already knew most of it → no deal. Full refund, and the enclave signs a certificate that it forgot both the memo and Fund B\'s notes.');await wait(7000);
+ cap('Anyone can re-check every settlement from chain data (make verify). Demo honesty: enclave attestation and the AI signer run in simulated local mode; contract checks, yield/resume, Chain Signatures payout address and the Intents quote are real.');await wait(6000);
  cap('LETHE · Arrow\'s information paradox, settled on NEAR: yield/resume · on-chain receipt checks · Intents payout to any chain.');}
 if(location.search.includes('autoplay'))setTimeout(autoplay,2500);
 </script></body></html>
